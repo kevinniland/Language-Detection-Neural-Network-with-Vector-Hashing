@@ -86,15 +86,21 @@ public class VectorProcessor {
 		text = record[0].replaceAll("\\p{P}", "").toUpperCase();
 		language = record[1];
 
+		for (i = 0; i < vector.length; i++) {
+			vector[i] = 0;
+		}
+		
 		for (i = 0; i <= vector.length - ngramSize; i++) {
 			// Set the vector index i to 0 on each iteration
-			vector[i] = 0;
+//			vector[i] = 0;
 			
 			// Create an ngram from the language text
 			ngram = text.substring(i, i + ngramSize);
-			vector[i] = ngram.hashCode() % vector.length;
+//			vector[i] = ngram.hashCode() % vector.length;
 			
-			vector[i]++;
+//			vector[i]++;
+			
+			vector[ngram.hashCode() % vector.length]++;
 		}
 		
 		// Normalize vector values

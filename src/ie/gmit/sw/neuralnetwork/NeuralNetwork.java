@@ -35,7 +35,7 @@ public class NeuralNetwork {
 	private MLDataSet mlDataSet;
 	private MLTrain mlTrain;
 	private ResilientPropagation resilientPropagation;
-	private int i, counter = 0, epoch = 1, inputs = 96, outputs = 235, hiddenLayers = inputs * 3;
+	private int i, counter = 0, epoch = 1, inputs = 300, outputs = 235, hiddenLayers = inputs * 3;
 	private int idealIndex = 0, resultIndex = -1;
 	private final double MAX_ERROR = 0.004;
 	private double correctValues = 0, total = 0;
@@ -49,7 +49,7 @@ public class NeuralNetwork {
 		// Configure the neural network topology.
 		basicNetwork = new BasicNetwork();
 
-		basicNetwork.addLayer(new BasicLayer(null, true, inputs));
+		basicNetwork.addLayer(new BasicLayer(new ActivationReLU(), true, inputs));
 
 		basicNetwork.addLayer(new BasicLayer(new ActivationReLU(), true, hiddenLayers));
 		basicNetwork.addLayer(new BasicLayer(new ActivationSoftMax(), false, outputs));
@@ -67,30 +67,31 @@ public class NeuralNetwork {
 		memoryDataLoader = new MemoryDataLoader(dataSetCODEC);
 		mlDataSet = memoryDataLoader.external2Memory();
 
-//		foldedDataSet = new FoldedDataSet(mlDataSet);
-//		mlTrain = new ResilientPropagation(basicNetwork, foldedDataSet);
-//		crossValidationKFold = new CrossValidationKFold(mlTrain, 1);
+		foldedDataSet = new FoldedDataSet(mlDataSet);
+		mlTrain = new ResilientPropagation(basicNetwork, foldedDataSet);
+		crossValidationKFold = new CrossValidationKFold(mlTrain, 5);
 
-		resilientPropagation = new ResilientPropagation(basicNetwork, mlDataSet);
-		resilientPropagation.addStrategy(new RequiredImprovementStrategy(5));
+//		resilientPropagation = new ResilientPropagation(basicNetwork, mlDataSet);
+//		resilientPropagation.addStrategy(new RequiredImprovementStrategy(5));
 
 		System.out.println("INFO: Training neural network...");
-		EncogUtility.trainToError(resilientPropagation, MAX_ERROR);
+//		EncogUtility.trainToError(resilientPropagation, MAX_ERROR);
 
-//		do {
-//			crossValidationKFold.iteration();
-//
-//			System.out.println("Epoch: " + epoch);
-//			System.out.println("Error: " + crossValidationKFold.getError());
-//			epoch++;
-//		} while (crossValidationKFold.getError() > MAX_ERROR);
+		do {
+			crossValidationKFold.iteration();
+			
+			epoch++;
+			
+			System.out.println("Epoch: " + epoch);
+			System.out.println("Error: " + crossValidationKFold.getError());
+		} while (crossValidationKFold.getError() > MAX_ERROR);
 
 		System.out.println(
 				"INFO: Training complete in " + epoch + " epochs with error = " + crossValidationKFold.getError());
 
 		Utilities.saveNeuralNetwork(basicNetwork, "./test.nn");
-//		crossValidationKFold.finishTraining();
-		resilientPropagation.finishTraining();
+		crossValidationKFold.finishTraining();
+//		resilientPropagation.finishTraining();
 
 //		BasicNetwork loadedNetwork = Utilities.loadNeuralNetwork("./test.nn");
 //		MLDataSet training = mdl.external2Memory();
