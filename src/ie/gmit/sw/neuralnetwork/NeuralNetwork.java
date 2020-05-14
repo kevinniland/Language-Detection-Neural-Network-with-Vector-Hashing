@@ -35,9 +35,9 @@ public class NeuralNetwork {
 	private MLDataSet mlDataSet;
 	private MLTrain mlTrain;
 	private ResilientPropagation resilientPropagation;
-	private int i, counter = 0, epoch = 1, inputs = 300, outputs = 235, hiddenLayers = inputs * 3;
+	private int i, counter = 0, epoch = 1, inputs = 200, outputs = 235, hiddenLayers = inputs * 3;
 	private int idealIndex = 0, resultIndex = -1;
-	private final double MAX_ERROR = 0.004;
+	private final double MAX_ERROR = 0.0046;
 	private double correctValues = 0, total = 0;
 	private double[] results;
 
@@ -79,11 +79,11 @@ public class NeuralNetwork {
 
 		do {
 			crossValidationKFold.iteration();
-			
-			epoch++;
-			
+					
 			System.out.println("Epoch: " + epoch);
 			System.out.println("Error: " + crossValidationKFold.getError());
+			
+			epoch++;
 		} while (crossValidationKFold.getError() > MAX_ERROR);
 
 		System.out.println(

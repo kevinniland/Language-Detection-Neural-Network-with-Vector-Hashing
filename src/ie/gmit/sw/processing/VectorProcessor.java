@@ -41,6 +41,10 @@ public class VectorProcessor {
 	 * @param vectorSize
 	 */
 	public VectorProcessor(int ngramSize, int vectorSize) {
+		if (csvFile.exists()) {
+			csvFile.delete();
+		}
+		
 		this.ngramSize = ngramSize;
 		this.vectorSize = vectorSize;
 	}
@@ -76,14 +80,15 @@ public class VectorProcessor {
 	 * @throws Exception
 	 */
 	public void process(String line) throws Exception {
-		record = line.trim().split("@");
+//		record = line.trim().split("@");
+		record = line.split("@");
 		
 		if (record.length > 2) {
 			return;
 		}
 
 		// Replace any and all punctuation
-		text = record[0].replaceAll("\\p{P}", "").toUpperCase();
+		text = record[0].replaceAll("\\p{P}", "").toLowerCase();
 		language = record[1];
 
 		for (i = 0; i < vector.length; i++) {
@@ -113,8 +118,9 @@ public class VectorProcessor {
 		/**
 		 * For each ngram, format it accordingly
 		 */
-		for (i = 0; i < vector.length - ngramSize; i++) {
-			bufferedWriter.write(decimalFormat.format(vector[i]) + ", ");
+		for (i = 0; i < vector.length ; i++) {
+//			bufferedWriter.write(decimalFormat.format(vector[i]) + ", ");
+			fileWriter.append(decimalFormat.format(vector[i]) + ", ");
 		}
 
 		for (i = 0; i < languages.length; i++) {
