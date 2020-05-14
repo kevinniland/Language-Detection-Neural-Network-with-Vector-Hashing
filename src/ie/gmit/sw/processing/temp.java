@@ -5,7 +5,7 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 
-import ie.gmit.sw.Utilities;
+import ie.gmit.sw.helpers.Utilities;
 import ie.gmit.sw.language.Language;
 
 public class temp {

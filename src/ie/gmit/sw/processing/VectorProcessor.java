@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 
-import ie.gmit.sw.Utilities;
+import ie.gmit.sw.helpers.Utilities;
 import ie.gmit.sw.language.Language;
 
 /**
@@ -17,109 +17,116 @@ import ie.gmit.sw.language.Language;
  * @category Processing
  * @version 1.0
  *
+ * VectorProcessor - Parses and processes the WiLI language dataset, creating vector values from this. These 
+ * vector values are normalized
  */
 public class VectorProcessor {
+	private Language[] languages = Language.values();
 	private BufferedReader bufferedReader;
 	private BufferedWriter bufferedWriter;
-	private CharSequence kmer;
+	private DecimalFormat decimalFormat = new DecimalFormat("###.###");
 	private File languageFile = new File("wili-2018-Small-11750-Edited.txt");
 	private File csvFile = new File("data.csv");
 	private FileWriter fileWriter;
-	private Language[] languages = Language.values();
-	private DecimalFormat decimalFormat = new DecimalFormat("###.###");
-	private String line = null;
-	private int i, index, ngramSize, vectorSize;
-	private static int NUMBER_OF_LANGUAGES = 235;
-	private double[] languageIndex = new double[NUMBER_OF_LANGUAGES];
+	private String line, text, language, ngram;
+	private String[] record;
+	private int i, ngramSize, vectorSize = 500;
+	private final int NUMBER_OF_LANGUAGES = 235;
 	private double[] vector = new double[100];
+	private double[] index = new double[NUMBER_OF_LANGUAGES];
 
-	public VectorProcessor(int ngramSize /*, int vectorSize */) {
+	/**
+	 * 
+	 * @param ngramSize
+	 * @param vectorSize
+	 */
+	public VectorProcessor(int ngramSize, int vectorSize) {
 		this.ngramSize = ngramSize;
-//		this.vectorSize = vectorSize;
+		this.vectorSize = vectorSize;
 	}
 
-	public void readFile() {
+	/**
+	 * Parse WiLI dataset and pass it of to process()
+	 * 
+	 * @throws Exception
+	 */
+	public void parse() throws Exception {
 		System.out.println("Reading WiLI language dataset...");
-
-		// Read in the language dataset
+		
 		try {
 			bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(languageFile)));
-
+					
 			System.out.println("Done");
 			System.out.println("Parsing file...");
-
-			// Split the file and trim it
+			
 			while ((line = bufferedReader.readLine()) != null) {
-				String[] fileRecord = line.trim().split("@");
-
-				if (fileRecord.length != 2) {
-					continue;
-				}
-
-				parse(fileRecord[0].toLowerCase().replaceFirst("\\p{P}", ""), fileRecord[1]);
+				process(line);
 			}
-
+			
 			System.out.println("Done");
-			bufferedReader.close();
-		} catch (Exception exception) {
-			exception.printStackTrace();
+		} catch (IOException ioException) {
+			ioException.printStackTrace();
 		}
 	}
 
 	/**
-	 * Parses the text and languages of the subject file. Creates kmers from the
-	 * subject text and add the kmer and language the kmer is in to the database
+	 * Process WiLI dataset
 	 * 
-	 * @param text - Subject text from the data set file
-	 * @param lang - Language of subject text
-	 * @throws IOException 
+	 * @param line
+	 * @throws Exception
 	 */
-	private void parse(String text, String lang, int... ks) throws IOException {
-//		Language language = Language.valueOf(lang);
-
-//		for (i = 0; i < vector.length; i++) {
-//			vector[i] = 0;
-//		}
-
-		/**
-		 * Create the k-mers
-		 * 
-		 * Add the k-mer and language to the proxy database
-		 */
-		for (i = 0; i <= vector.length - ngramSize; i++) {
-			vector[i] = 0;
-			
-			kmer = text.substring(i, i + ngramSize);
-
-			index = kmer.hashCode() % vector.length;
-
-			vector[index]++;
+	public void process(String line) throws Exception {
+		record = line.trim().split("@");
+		
+		if (record.length > 2) {
+			return;
 		}
 
-		vector = Utilities.normalize(vector, -1, 1);
+		// Replace any and all punctuation
+		text = record[0].replaceAll("\\p{P}", "").toUpperCase();
+		language = record[1];
+
+		for (i = 0; i <= vector.length - ngramSize; i++) {
+			// Set the vector index i to 0 on each iteration
+			vector[i] = 0;
+			
+			// Create an ngram from the language text
+			ngram = text.substring(i, i + ngramSize);
+			vector[i] = ngram.hashCode() % vector.length;
+			
+			vector[i]++;
+		}
 		
+		// Normalize vector values
+		vector = Utilities.normalize(vector, 0, 1);
+		
+		// Save normalized vector values to CSV file
 		fileWriter = new FileWriter(csvFile, true);
 		bufferedWriter = new BufferedWriter(fileWriter);
 		
-		for (i = 0; i <= vector.length - ngramSize; i++) {
+		/**
+		 * For each ngram, format it accordingly
+		 */
+		for (i = 0; i < vector.length - ngramSize; i++) {
 			bufferedWriter.write(decimalFormat.format(vector[i]) + ", ");
 		}
-		
+
 		for (i = 0; i < languages.length; i++) {
-			if (lang.equalsIgnoreCase(String.valueOf(languages[i]))) {
-				languageIndex[i] = 1;
+			if (language.equalsIgnoreCase(String.valueOf(languages[i]))) {
+				index[i] = 1;
+//				bufferedWriter.write(index[i] + ", ");
 			}
 			
-			bufferedWriter.write(languageIndex[i] + ", ");
-			
-			languageIndex[i] = 0; 
+			bufferedWriter.write(index[i] + ", ");
+			index[i] = 0;
+
 		}
 		
 		bufferedWriter.newLine();
 		bufferedWriter.close();
 	}
 
-	public static void main(String[] args) {
-		new VectorProcessor(4).readFile();
-	}
+//	public static void main(String[] args) throws Exception {
+//		new VectorProcessor(4, 100).parse();
+//	}
 }

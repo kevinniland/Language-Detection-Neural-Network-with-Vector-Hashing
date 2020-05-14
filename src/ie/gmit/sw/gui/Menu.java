@@ -1,10 +1,14 @@
-package ie.gmit.sw;
+package ie.gmit.sw.gui;
 
 import java.util.Scanner;
 
 /**
  * @author Kevin Niland
- *
+ * @category GUI
+ * @version 1.0
+ * 
+ *          Menu - Simple menu from the user can choose several different
+ *          options such as specifying the n-gram size, vector size, etc.
  */
 public class Menu {
 	private Scanner scanner = new Scanner(System.in);
