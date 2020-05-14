@@ -2,6 +2,12 @@ package ie.gmit.sw;
 
 import ie.gmit.sw.language.Language;
 
+/**
+ * @author Kevin Niland
+ * @category GUI
+ * @version 1.0
+ *
+ */
 public class Runner {
 	public static void main(String[] args){
 		
@@ -12,8 +18,10 @@ public class Runner {
 		*/
 		Language[] langs = Language.values(); //Only call this once...	
 		
-		for (int i = 0; i < langs.length; i++){
-			System.out.println(i + "-->" + langs[i]);
-		}
+//		for (int i = 0; i < langs.length; i++){
+//			System.out.println(i + "-->" + langs[i]);
+//		}
+		
+		new Menu().menu();
 	}
 }
