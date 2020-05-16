@@ -189,9 +189,9 @@ public class NeuralNetwork {
 
 		double percent = (double) correctValues / (double) total;
 
-		System.out.println("INFO: Testing complete.");
+		System.out.println("\nINFO: Testing complete.");
 		System.out.println("Correct: " + correctValues + "/" + total);
-		System.out.println("Accuracy: " + (percent * 100) + "%");
+		System.out.println("Accuracy: " + (percent * 100) + "%\n");
 
 		Encog.getInstance().shutdown();
 	}
