@@ -1,0 +1,20 @@
+------------------------------------------------------------------------------------------------------------------------------------------------
+TRAINING NEURAL NETWORK
+------------------------------------------------------------------------------------------------------------------------------------------------
+Epoch:1, Time:1308ms, TrainError:2.9714715, TrainErrorChange:2.9714715, TrainAccuracy: NaN
+Epoch:2, Time:934ms, TrainError:3.0170114, TrainErrorChange:0.045539856, TrainAccuracy: NaN
+Epoch:3, Time:880ms, TrainError:3.0266967, TrainErrorChange:0.009685278, TrainAccuracy: NaN
+Epoch:4, Time:902ms, TrainError:3.0317874, TrainErrorChange:0.0050907135, TrainAccuracy: NaN
+Epoch:5, Time:901ms, TrainError:3.0346522, TrainErrorChange:0.0028648376, TrainAccuracy: NaN
+Epoch:6, Time:889ms, TrainError:3.0362802, TrainErrorChange:0.001627922, TrainAccuracy: NaN
+Epoch:7, Time:860ms, TrainError:3.0371685, TrainErrorChange:8.883476E-4, TrainAccuracy: NaN
+Epoch:8, Time:860ms, TrainError:3.0375957, TrainErrorChange:4.272461E-4, TrainAccuracy: NaN
+Epoch:9, Time:772ms, TrainError:3.037718, TrainErrorChange:1.2230873E-4, TrainAccuracy: NaN
+Epoch:10, Time:620ms, TrainError:3.0376475, TrainErrorChange:-7.05719E-5, TrainAccuracy: NaN
+Epoch:11, Time:560ms, TrainError:3.0374477, TrainErrorChange:-1.9979477E-4, TrainAccuracy: NaN
+Epoch:12, Time:507ms, TrainError:3.0371544, TrainErrorChange:-2.9325485E-4, TrainAccuracy: NaN
+Epoch:13, Time:859ms, TrainError:3.036825, TrainErrorChange:-3.2949448E-4, TrainAccuracy: NaN
+Epoch:14, Time:861ms, TrainError:3.0364475, TrainErrorChange:-3.774166E-4, TrainAccuracy: NaN
+Epoch:15, Time:865ms, TrainError:3.036056, TrainErrorChange:-3.914833E-4, TrainAccuracy: NaN
+Epoch:16, Time:867ms, TrainError:3.0356402, TrainErrorChange:-4.15802E-4, TrainAccuracy: NaN
+Epoch:17, Time:863ms, TrainError:3.0352468, TrainErrorChange:-3.9339066E-4, TrainAccuracy: NaN

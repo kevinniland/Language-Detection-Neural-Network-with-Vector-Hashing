@@ -8,6 +8,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 import ie.gmit.sw.helpers.Utilities;
 import ie.gmit.sw.language.Language;
@@ -17,36 +19,37 @@ import ie.gmit.sw.language.Language;
  * @category Processing
  * @version 1.0
  *
- * VectorProcessor - Parses and processes the WiLI language dataset, creating vector values from this. These 
- * vector values are normalized
+ *          VectorProcessor - Parses and processes the WiLI language dataset,
+ *          creating vector values from this. These vector values are normalized
  */
 public class VectorProcessor {
 	private Language[] languages = Language.values();
 	private BufferedReader bufferedReader;
 	private BufferedWriter bufferedWriter;
-	private DecimalFormat decimalFormat = new DecimalFormat("###.###");
+	private DecimalFormat decimalFormatText = new DecimalFormat("###.###");
+	private DecimalFormat decimalFormatLanguage = new DecimalFormat("#.#");
 	private File languageFile = new File("wili-2018-Small-11750-Edited.txt");
 	private File csvFile = new File("data.csv");
 	private FileWriter fileWriter;
 	private String line, text, language, ngram;
 	private String[] record;
-	private int i, ngramSize, vectorSize = 500;
-	private final int NUMBER_OF_LANGUAGES = 235;
-	private double[] vector = new double[100];
+	private int i, j, ngramSize = 0;
+	private final int NUMBER_OF_LANGUAGES = Language.values().length;
 	private double[] index = new double[NUMBER_OF_LANGUAGES];
+	private double[] vector;
 
 	/**
-	 * 
-	 * @param ngramSize
-	 * @param vectorSize
+	 * @param ngramSize - Size of ngram as defined by user
+	 * @param vectorSize - Size of vector as defined by user
 	 */
 	public VectorProcessor(int ngramSize, int vectorSize) {
+		// Check if the CSV file already exists and deletes it if it does
 		if (csvFile.exists()) {
 			csvFile.delete();
 		}
-		
+
 		this.ngramSize = ngramSize;
-		this.vectorSize = vectorSize;
+		vector = new double[vectorSize];
 	}
 
 	/**
@@ -55,18 +58,18 @@ public class VectorProcessor {
 	 * @throws Exception
 	 */
 	public void parse() throws Exception {
-		System.out.println("Reading WiLI language dataset...");
-		
+		System.out.print("Reading WiLI language dataset...");
+
 		try {
 			bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(languageFile)));
-					
+
 			System.out.println("Done");
-			System.out.println("Parsing file...");
-			
+			System.out.print("Processing file...");
+
 			while ((line = bufferedReader.readLine()) != null) {
 				process(line);
 			}
-			
+
 			System.out.println("Done");
 		} catch (IOException ioException) {
 			ioException.printStackTrace();
@@ -80,65 +83,102 @@ public class VectorProcessor {
 	 * @throws Exception
 	 */
 	public void process(String line) throws Exception {
-//		record = line.trim().split("@");
 		record = line.split("@");
-		
+
 		if (record.length > 2) {
 			return;
 		}
 
-		// Replace any and all punctuation
-		text = record[0].replaceAll("\\p{P}", "").toLowerCase();
+		// Replace any irrelevant characters
+		text = record[0].toLowerCase().replaceAll("[\\.$|,|;|']", "").replaceAll("[0-9]", "").replaceAll("[\\[\\](){}]",
+				"");
 		language = record[1];
+		
+		/**
+		 * Checks if the language is in the enum. Will return if not the case
+		 * 
+		 * Prevents an issue specific to Old English when attempting to parse the file
+		 */
+		if (!Language.isInEnum(language, Language.class)) {
+			return;
+		}
 
+		// Sets vector index i to 0 on each iteration. 
 		for (i = 0; i < vector.length; i++) {
 			vector[i] = 0;
 		}
 		
-		for (i = 0; i <= vector.length - ngramSize; i++) {
-			// Set the vector index i to 0 on each iteration
-//			vector[i] = 0;
-			
-			// Create an ngram from the language text
-			ngram = text.substring(i, i + ngramSize);
-//			vector[i] = ngram.hashCode() % vector.length;
-			
-//			vector[i]++;
-			
+		List<String> ngrams = ngram(text, ngramSize);
+		
+		for (String ngram : ngrams) {
 			vector[ngram.hashCode() % vector.length]++;
 		}
-		
-		// Normalize vector values
-		vector = Utilities.normalize(vector, 0, 1);
-		
-		// Save normalized vector values to CSV file
-		fileWriter = new FileWriter(csvFile, true);
-		bufferedWriter = new BufferedWriter(fileWriter);
-		
-		/**
-		 * For each ngram, format it accordingly
-		 */
-		for (i = 0; i < vector.length ; i++) {
-//			bufferedWriter.write(decimalFormat.format(vector[i]) + ", ");
-			fileWriter.append(decimalFormat.format(vector[i]) + ", ");
-		}
 
-		for (i = 0; i < languages.length; i++) {
-			if (language.equalsIgnoreCase(String.valueOf(languages[i]))) {
-				index[i] = 1;
-//				bufferedWriter.write(index[i] + ", ");
+		// Normalize the vector values
+		vector = Utilities.normalize(vector, 0.0, 1.0);
+
+		index = toVector(Language.valueOf(language));
+
+		// Save normalized vector values to CSV file
+		try {
+			fileWriter = new FileWriter(csvFile, true);
+
+			for (i = 0; i < vector.length; i++) {
+				fileWriter.append(decimalFormatText.format(vector[i]) + ",");
 			}
 			
-			bufferedWriter.write(index[i] + ", ");
-			index[i] = 0;
-
+			for (j = 0; j < index.length; j++) {
+                fileWriter.append(decimalFormatLanguage.format(index[j]) + ",");
+            }
+		} catch (Exception exception) {
+			exception.printStackTrace();
+		} finally {
+			fileWriter.append("\n");
+			fileWriter.flush();
+			fileWriter.close();
 		}
+	}
+	
+	/**
+	 * Creates an n-gram from text
+	 * 
+	 * @param text - Line of text that will be made into an n-gram
+	 * @param ngramSize - N-gram size as defined by the user
+	 * 
+	 * @return ngrams
+	 */
+	public static List<String> ngram(String text, int ngramSize) {
+		List<String> ngrams = new ArrayList<String>();
+		int i;
 		
-		bufferedWriter.newLine();
-		bufferedWriter.close();
+        for (i = 0; i < text.length() - ngramSize + 1; i++) {
+            ngrams.add(text.substring(i, i + ngramSize));
+        }
+        
+        return ngrams;
 	}
 
+	/**
+	 * 
+	 * @param language
+	 * @return languages
+	 * @throws IOException
+	 */
+	public double[] toVector(Language language) throws IOException {
+		double[] languages = new double[Language.values().length];
+
+		Language[] langs = Language.values();
+
+		for (i = 0; i < langs.length; i++) {
+			if (language == langs[i]) {
+				languages[i] = 1.0;
+			}
+		}
+
+		return languages;
+	}
+//
 //	public static void main(String[] args) throws Exception {
-//		new VectorProcessor(4, 100).parse();
+//		new VectorProcessor(4).parse();
 //	}
 }

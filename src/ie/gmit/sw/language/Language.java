@@ -1,5 +1,7 @@
 package ie.gmit.sw.language;
 
+import java.util.Arrays;
+
 /**
  * @author John Healy
  * @category Language
@@ -77,4 +79,8 @@ public enum Language {
 	public CharSequence getLanguageName() {
 		return this.language;
 	}
+	
+	public static boolean isInEnum(String value, Class<Language> enumClass) {
+        return Arrays.stream(enumClass.getEnumConstants()).anyMatch(e -> e.name().equals(value));
+    }
 }

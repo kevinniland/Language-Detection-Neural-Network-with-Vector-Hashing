@@ -11,7 +11,7 @@ import ie.gmit.sw.gui.Menu;
  *          Menu.java
  */
 public class Runner {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		new Menu().menu();
 	}
 }
