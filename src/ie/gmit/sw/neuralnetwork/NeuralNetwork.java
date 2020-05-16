@@ -152,35 +152,47 @@ public class NeuralNetwork {
 //			counter++;
 //		}
 
+		/**
+		 * 
+		 */
 		for (MLDataPair mlDataPair : mlDataSet) {
 			MLData inputData = mlDataPair.getInput();
 			MLData actualData = mlDataPair.getIdeal();
 			MLData predictData = basicNetwork.compute(inputData);
-			
+
 			double actual = actualData.getData(0);
 			double predict = predictData.getData(0);
 			double diff = Math.abs(actual - predict);
-			
-			Direction actualDirection = Direction.determineDirection(actual);
-			Direction predictDirection = Direction.determineDirection(predict);
-			
-			if (actualDirection == predictDirection) {
+
+			// Doesn't work - ignore
+//			Direction actualDirection = Direction.determineDirection(actual);
+//			Direction predictDirection = Direction.determineDirection(predict);
+
+			// Gives 44% accuracy
+			if (mlDataPair.getInput().getData(0) == mlDataPair.getInput().getData(1)) {
 				correctValues++;
 			}
 			
+			// Gives 99% accuracy
+//			if (actual == predict) {
+//				correctValues++;
+//			}
+
 			total++;
 
-//			System.out.println(mlDataPair.getInput().getData(0) + ", " + mlDataPair.getInput().getData(1) + "\n"
-//					+ ", Y = " + (int) Math.round(mlDataOutput.getData(0)) + ", Yd = "
-//					+ (int) mlDataPair.getIdeal().getData(0));
+//			System.out.println(mlDataPair.getInput().getData(0) + ", " + mlDataPair.getInput().getData(1) + ", Y = "
+//					+ (int) Math.round(predictData.getData(0)) + ", Yd = " + (int) mlDataPair.getIdeal().getData(0));
+
+//			System.out.println(total + ": actual = " + actual + "(" + actualDirection + "), predict = " + predict + "("
+//					+ actualDirection + "), diff = " + diff);
 		}
-		
+
 		double percent = (double) correctValues / (double) total;
-		
+
 		System.out.println("INFO: Testing complete.");
 		System.out.println("Correct: " + correctValues + "/" + total);
 		System.out.println("Accuracy: " + (percent * 100) + "%");
-		
+
 		Encog.getInstance().shutdown();
 	}
 }
