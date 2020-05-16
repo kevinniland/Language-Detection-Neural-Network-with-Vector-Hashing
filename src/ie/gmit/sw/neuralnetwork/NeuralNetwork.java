@@ -5,8 +5,10 @@ import java.io.IOException;
 
 import org.encog.Encog;
 import org.encog.engine.network.activation.ActivationBiPolar;
+import org.encog.engine.network.activation.ActivationBipolarSteepenedSigmoid;
 import org.encog.engine.network.activation.ActivationClippedLinear;
 import org.encog.engine.network.activation.ActivationCompetitive;
+import org.encog.engine.network.activation.ActivationLOG;
 import org.encog.engine.network.activation.ActivationReLU;
 import org.encog.engine.network.activation.ActivationSigmoid;
 import org.encog.engine.network.activation.ActivationSoftMax;
@@ -39,19 +41,18 @@ import ie.gmit.sw.processing.VectorProcessor;
 public class NeuralNetwork {
 	private BasicNetwork basicNetwork, savedNetwork;
 	private CrossValidationKFold crossValidationKFold;
-//	private DataSet dataSets;
 	private DataSetCODEC dataSetCODEC;
 	private FoldedDataSet foldedDataSet;
-//	private FeedForwardNetwork feedForwardNetwork;
 	private MemoryDataLoader memoryDataLoader;
 	private MLData mlDataOutput, mlDataActual, mlDataIdeal;
 	private MLDataSet mlDataSet;
 	private MLTrain mlTrain;
 	private ResilientPropagation resilientPropagation;
 	private String csvFile = "data.csv";
+	private File nnFile = new File("test.nn");
 	private int i, counter = 0, epoch = 1, inputs = 0, outputs = 235;
 	private int idealIndex = 0, resultIndex = -1;
-	private final double MAX_ERROR = 0.0037;
+	private final double MAX_ERROR = 0.0043;
 	private double correctValues = 0.0, total = 0.0;
 	private double alpha = 0.01;
 	private double hiddenLayers = Math.sqrt(inputs * outputs); // Geometric Pyramid Rule
@@ -67,14 +68,15 @@ public class NeuralNetwork {
 		// Configures the neural network topology
 		basicNetwork = new BasicNetwork();
 
-		basicNetwork.addLayer(new BasicLayer(new ActivationCompetitive(), true, inputs));
+		basicNetwork.addLayer(new BasicLayer(new ActivationSigmoid(), true, inputs));
 
 		basicNetwork.addLayer(new BasicLayer(new ActivationReLU(), true, (int) hiddenLayers));
-		basicNetwork.addLayer(new BasicLayer(new ActivationSoftMax(), false, (int) hiddenLayers));
-		basicNetwork.addLayer(new BasicLayer(new ActivationSigmoid(), true, (int) outputs));
-//		basicNetwork.addLayer(new BasicLayer(new ActivationTANH(), false, (int) outputs));
-		
-		basicNetwork.addLayer(new BasicLayer(new ActivationSoftMax(), false, outputs));
+		basicNetwork.addLayer(new BasicLayer(new ActivationBipolarSteepenedSigmoid(), false, (int) hiddenLayers));
+		basicNetwork.addLayer(new BasicLayer(new ActivationSigmoid(), true, (int) hiddenLayers));
+		basicNetwork.addLayer(new BasicLayer(new ActivationTANH(), true, outputs));
+		basicNetwork.addLayer(new BasicLayer(new ActivationSigmoid(), true, outputs));
+
+		basicNetwork.addLayer(new BasicLayer(new ActivationReLU(), false, outputs));
 
 		basicNetwork.getStructure().finalizeStructure();
 		basicNetwork.reset();
@@ -89,7 +91,7 @@ public class NeuralNetwork {
 
 		foldedDataSet = new FoldedDataSet(mlDataSet);
 //		mlTrain = new Backpropagation(basicNetwork, mlDataSet);
-		mlTrain = new Backpropagation(basicNetwork, foldedDataSet);
+//		mlTrain = new Backpropagation(basicNetwork, foldedDataSet);
 		mlTrain = new ResilientPropagation(basicNetwork, foldedDataSet);
 		crossValidationKFold = new CrossValidationKFold(mlTrain, 5);
 
@@ -151,27 +153,34 @@ public class NeuralNetwork {
 //		}
 
 		for (MLDataPair mlDataPair : mlDataSet) {
-			mlDataOutput = basicNetwork.compute(mlDataPair.getInput());
+			MLData inputData = mlDataPair.getInput();
+			MLData actualData = mlDataPair.getIdeal();
+			MLData predictData = basicNetwork.compute(inputData);
+			
+			double actual = actualData.getData(0);
+			double predict = predictData.getData(0);
+			double diff = Math.abs(actual - predict);
+			
+			Direction actualDirection = Direction.determineDirection(actual);
+			Direction predictDirection = Direction.determineDirection(predict);
+			
+			if (actualDirection == predictDirection) {
+				correctValues++;
+			}
+			
+			total++;
 
 //			System.out.println(mlDataPair.getInput().getData(0) + ", " + mlDataPair.getInput().getData(1) + "\n"
 //					+ ", Y = " + (int) Math.round(mlDataOutput.getData(0)) + ", Yd = "
 //					+ (int) mlDataPair.getIdeal().getData(0));
 		}
-
-//		System.out.println("INFO: Testing complete. Accuracy: " + (correctValues / total) * 100 + "%");
+		
+		double percent = (double) correctValues / (double) total;
+		
+		System.out.println("INFO: Testing complete.");
+		System.out.println("Correct: " + correctValues + "/" + total);
+		System.out.println("Accuracy: " + (percent * 100) + "%");
+		
 		Encog.getInstance().shutdown();
 	}
-	
-//	public void feedForwardNeuralNetwork() throws IOException {
-//		dataSets = DataSets.readCsv(csvFile, inputs, 385);
-//		
-//		feedForwardNetwork = FeedForwardNetwork.builder()
-//				.addInputLayer(inputs)
-//				.addFullyConnectedLayer(15, ActivationType.RELU)
-//				.addOutputLayer(outputs, ActivationType.SIGMOID)
-//				.lossFunction(LossType.CROSS_ENTROPY)
-//				.build();
-//		
-//		feedForwardNetwork.train(dataSets);
-//	}
 }
