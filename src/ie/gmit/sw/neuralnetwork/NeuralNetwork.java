@@ -2,6 +2,8 @@ package ie.gmit.sw.neuralnetwork;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 
 import org.encog.Encog;
 import org.encog.engine.network.activation.ActivationBiPolar;
@@ -42,21 +44,23 @@ public class NeuralNetwork {
 	private BasicNetwork basicNetwork, savedNetwork;
 	private CrossValidationKFold crossValidationKFold;
 	private DataSetCODEC dataSetCODEC;
+	private DecimalFormat decimalFormat;
 	private FoldedDataSet foldedDataSet;
 	private MemoryDataLoader memoryDataLoader;
-	private MLData mlDataOutput, mlDataActual, mlDataIdeal;
+	private MLData mlDataOutput;
 	private MLDataSet mlDataSet;
 	private MLTrain mlTrain;
-	private ResilientPropagation resilientPropagation;
 	private String csvFile = "data.csv";
 	private File nnFile = new File("test.nn");
-	private int i, counter = 0, epoch = 1, inputs = 0, outputs = 235;
-	private int idealIndex = 0, resultIndex = -1;
-	private final double MAX_ERROR = 0.00426;
+	private int i, counter = 0, epoch = 0, inputs = 0, outputs = 235;
+	private int actual = 0, check = 0;
+	private final double MAX_ERROR = 0.00425;
 	private int correctValues = 0, total = 0;
 	private double alpha = 0.01;
-//	private double hiddenLayers = Math.sqrt(inputs * outputs); // Geometric Pyramid Rule
-	private double hiddenLayers = inputs / (alpha * (inputs + outputs));
+	private double limit = -1;
+	private double nnError, percent;
+	private double hiddenLayers = Math.sqrt(inputs * outputs); // Geometric Pyramid Rule
+//	private double hiddenLayers = inputs / (alpha * (inputs + outputs));
 	private double[] results;
 
 	public NeuralNetwork(int inputs) {
@@ -68,16 +72,17 @@ public class NeuralNetwork {
 		// Configures the neural network topology
 		basicNetwork = new BasicNetwork();
 
-		basicNetwork.addLayer(new BasicLayer(new ActivationSigmoid(), true, inputs));
+		basicNetwork.addLayer(new BasicLayer(new ActivationReLU(), true, inputs));
 
-		basicNetwork.addLayer(new BasicLayer(new ActivationReLU(), true, (int) hiddenLayers));
-		basicNetwork.addLayer(new BasicLayer(new ActivationBipolarSteepenedSigmoid(), false, (int) hiddenLayers));
-		basicNetwork.addLayer(new BasicLayer(new ActivationSigmoid(), true, (int) hiddenLayers));
-		basicNetwork.addLayer(new BasicLayer(new ActivationClippedLinear(), true, (int) hiddenLayers));
-		basicNetwork.addLayer(new BasicLayer(new ActivationTANH(), true, outputs));
-		basicNetwork.addLayer(new BasicLayer(new ActivationSigmoid(), true, outputs));
+//		basicNetwork.addLayer(new BasicLayer(new ActivationSigmoid(), true, inputs));
+		basicNetwork.addLayer(new BasicLayer(new ActivationSoftMax(), true, (int) hiddenLayers));
 
-		basicNetwork.addLayer(new BasicLayer(new ActivationReLU(), false, outputs));
+//		basicNetwork.addLayer(new BasicLayer(new ActivationReLU(), true, (int) hiddenLayers));
+//		basicNetwork.addLayer(new BasicLayer(new ActivationBipolarSteepenedSigmoid(), false, (int) hiddenLayers));
+//		basicNetwork.addLayer(new BasicLayer(new ActivationSigmoid(), true, 500));
+//		basicNetwork.addLayer(new BasicLayer(new ActivationClippedLinear(), false, 500));
+
+		basicNetwork.addLayer(new BasicLayer(new ActivationReLU(), true, outputs));
 
 		basicNetwork.getStructure().finalizeStructure();
 		basicNetwork.reset();
@@ -91,72 +96,73 @@ public class NeuralNetwork {
 		mlDataSet = memoryDataLoader.external2Memory();
 
 		foldedDataSet = new FoldedDataSet(mlDataSet);
-//		mlTrain = new Backpropagation(basicNetwork, mlDataSet);
-//		mlTrain = new Backpropagation(basicNetwork, foldedDataSet);
-		mlTrain = new ResilientPropagation(basicNetwork, foldedDataSet);
+		mlTrain = new Backpropagation(basicNetwork, foldedDataSet);
 		crossValidationKFold = new CrossValidationKFold(mlTrain, 5);
 
-//		resilientPropagation = new ResilientPropagation(basicNetwork, mlDataSet);
-//		resilientPropagation.addStrategy(new RequiredImprovementStrategy(5));
-
 		System.out.println("\nINFO: Training neural network...");
-//		EncogUtility.trainToError(resilientPropagation, MAX_ERROR);
+
+		// Format crossValidationKFold output
+		decimalFormat = new DecimalFormat("#.######");
+		decimalFormat.setRoundingMode(RoundingMode.CEILING);
 
 		do {
 			crossValidationKFold.iteration();
 
-			System.out.println("Epoch: " + epoch);
-			System.out.println("Error: " + crossValidationKFold.getError());
-
 			epoch++;
+
+			System.out.println("Epoch: " + epoch);
+			System.out.println("Error: " + decimalFormat.format(crossValidationKFold.getError()));
 		} while (crossValidationKFold.getError() > MAX_ERROR);
 
-		System.out.println(
-				"INFO: Training complete in " + epoch + " epochs with error = " + crossValidationKFold.getError());
+		System.out.println("\nINFO: Training complete in " + epoch + " epochs with error = "
+				+ decimalFormat.format(crossValidationKFold.getError()));
 
 		Utilities.saveNeuralNetwork(basicNetwork, "./test.nn");
 		crossValidationKFold.finishTraining();
-//		resilientPropagation.finishTraining();
 
 		savedNetwork = Utilities.loadNeuralNetwork("./test.nn");
-//		MLDataSet training = mdl.external2Memory();
-//		double err = loadedNetwork.calculateError(training);
-//
-//		System.out.println("Loaded network’s error is (should be same as above) : " + err);
-//		EncogUtility.evaluate(loadedNetwork, training);
+		mlDataSet = memoryDataLoader.external2Memory();
+		nnError = savedNetwork.calculateError(mlDataSet);
+
+		System.out.println("Saved network’s error: " + decimalFormat.format(nnError));
 
 		for (MLDataPair mlDataPair : mlDataSet) {
-			MLData inputData = mlDataPair.getInput();
-			MLData actualData = mlDataPair.getIdeal();
-			MLData predictData = basicNetwork.compute(inputData);
+			mlDataOutput = basicNetwork.compute(mlDataPair.getInput());
 
-			double actual = actualData.getData(0);
-			double predict = predictData.getData(0);
-			double diff = Math.abs(actual - predict);
+			for (i = 0; i < mlDataOutput.size(); i++) {
+				if (mlDataOutput.getData(i) > limit) {
+					limit = mlDataOutput.getData(i);
 
-			// Doesn't work - ignore
-//			Direction actualDirection = Direction.determineDirection(actual);
-//			Direction predictDirection = Direction.determineDirection(predict);
-
-			// Gives 44% accuracy
-			if (mlDataPair.getInput().getData(0) == mlDataPair.getInput().getData(1)) {
-				correctValues++;
+					actual = i;
+				}
 			}
 
-			// Gives 99% accuracy
-//			if (actual == predict) {
-//				correctValues++;
-//			}
+			for (i = 0; i < mlDataOutput.size(); i++) {
+				if (mlDataPair.getIdeal().getData(i) > limit) {
+					limit = mlDataOutput.getData(i);
+
+					check = i;
+				}
+			}
+
+			if (actual == check) {
+				correctValues++;
+			}
 
 			total++;
 		}
 
-		double percent = (double) correctValues / (double) total;
+		// Format accuracy
+		decimalFormat = new DecimalFormat("##.##");
+		decimalFormat.setRoundingMode(RoundingMode.CEILING);
+
+		percent = (double) correctValues / (double) total;
 
 		System.out.println("\nINFO: Testing complete.");
 		System.out.println("Correct: " + correctValues + "/" + total);
-		System.out.println("Accuracy: " + (percent * 100) + "%\n");
+		System.out.println("Accuracy: " + decimalFormat.format(percent * 100) + "%");
 
+		// Shutdown
 		Encog.getInstance().shutdown();
 	}
 }

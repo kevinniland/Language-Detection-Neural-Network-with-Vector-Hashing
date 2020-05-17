@@ -28,10 +28,11 @@ public class VectorProcessor {
 	private BufferedWriter bufferedWriter;
 	private DecimalFormat decimalFormatText = new DecimalFormat("###.###");
 	private DecimalFormat decimalFormatLanguage = new DecimalFormat("#.#");
-	private File languageFile = new File("wili-2018-Small-11750-Edited.txt");
 	private File csvFile = new File("data.csv");
+	private File languageFile = new File("wili-2018-Small-11750-Edited.txt");
 	private FileWriter fileWriter;
 	private String line, text, language, ngram;
+	private String file;
 	private String[] record;
 	private int i, j, ngramSize = 0;
 	private final int NUMBER_OF_LANGUAGES = Language.values().length;
@@ -42,12 +43,13 @@ public class VectorProcessor {
 	 * @param ngramSize - Size of ngram as defined by user
 	 * @param vectorSize - Size of vector as defined by user
 	 */
-	public VectorProcessor(int ngramSize, int vectorSize) {
+	public VectorProcessor(/*String file,*/ int ngramSize, int vectorSize) {
 		// Check if the CSV file already exists and deletes it if it does
 		if (csvFile.exists()) {
 			csvFile.delete();
 		}
 
+//		this.file = file;
 		this.ngramSize = ngramSize;
 		vector = new double[vectorSize];
 	}
@@ -61,6 +63,7 @@ public class VectorProcessor {
 		System.out.print("\nReading WiLI language dataset...");
 
 		try {
+//			bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(new File(file))));
 			bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(languageFile)));
 
 			System.out.println("Done");
@@ -90,8 +93,7 @@ public class VectorProcessor {
 		}
 
 		// Replace any irrelevant characters
-		text = record[0].toLowerCase().replaceAll("[\\.$|,|;|']", "").replaceAll("[0-9]", "").replaceAll("[\\[\\](){}]",
-				"");
+		text = record[0].toLowerCase();
 		language = record[1];
 		
 		/**
@@ -177,8 +179,4 @@ public class VectorProcessor {
 
 		return languages;
 	}
-//
-//	public static void main(String[] args) throws Exception {
-//		new VectorProcessor(4).parse();
-//	}
 }

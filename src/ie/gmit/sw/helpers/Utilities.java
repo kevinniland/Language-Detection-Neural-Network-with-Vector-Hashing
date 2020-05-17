@@ -21,9 +21,10 @@ public class Utilities {
 	 * function(s) that you are using in your neural network, e.g. Tanh, Sigmoid,
 	 * etc.
 	 *
-	 * @param vector the array of hashed n-grams.
-	 * @param lower  the lower bound to squash the vector values from, eg. -1 or 0.
-	 * @param upper  the upper bound to squash the vector values to, e.g. 1.
+	 * @param vector - The array of hashed n-grams.
+	 * @param lower  - The lower bound to squash the vector values from, e.g. -1 or
+	 *               0
+	 * @param upper  - The upper bound to squash the vector values to, e.g. 1.
 	 * @return the vector of values normalized within the range [lower..upper].
 	 */
 	public static double[] normalize(double[] vector, double lower, double upper) {
@@ -40,7 +41,7 @@ public class Utilities {
 	}
 
 	/**
-	 * Saves an Encog multilayer perceptron to file. Once a neural network has been
+	 * Saves an Encog multi-layer perceptron to file. Once a neural network has been
 	 * trained, it can be saved and loaded again when needed. A trained neural
 	 * network consists of the network topology with a set of fixed weights. Thus,
 	 * the file size is typically very small. Assuming that you have a neural
@@ -55,21 +56,21 @@ public class Utilities {
 	 * you can save the network using the following syntax:
 	 * Utilities.saveNeuralNetwork(network, "language-detect.nn");
 	 * 
-	 * @param basicNetwork the instance of BasicNetwork to save.
-	 * @param fileName     the name of the file to save the network to.
+	 * @param basicNetwork - The instance of BasicNetwork to save.
+	 * @param fileName     - The name of the file to save the network to.
 	 */
 	public static void saveNeuralNetwork(BasicNetwork basicNetwork, String fileName) {
 		EncogDirectoryPersistence.saveObject(new File(fileName), basicNetwork);
 	}
 
 	/**
-	 * Loads a trained multilayer perceptron from a file. As the neural network has
+	 * Loads a trained multi-layer perceptron from a file. As the neural network has
 	 * already been trained, the model can be deserialized and reused without
 	 * further training. Use this method as follows:
 	 * 
 	 * BasicNetwork network = Utilities.loadNeuralNetwork("language-detect.nn");
 	 * 
-	 * @param fileName the name of the file containing the serialized instance of
+	 * @param fileName - The name of the file containing the serialized instance of
 	 *                 BasicNetwork.
 	 * @return
 	 */
