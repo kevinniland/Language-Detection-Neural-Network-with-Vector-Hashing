@@ -52,11 +52,11 @@ public class NeuralNetwork {
 	private File nnFile = new File("test.nn");
 	private int i, counter = 0, epoch = 1, inputs = 0, outputs = 235;
 	private int idealIndex = 0, resultIndex = -1;
-	private final double MAX_ERROR = 0.0043;
-	private double correctValues = 0.0, total = 0.0;
+	private final double MAX_ERROR = 0.00426;
+	private int correctValues = 0, total = 0;
 	private double alpha = 0.01;
-	private double hiddenLayers = Math.sqrt(inputs * outputs); // Geometric Pyramid Rule
-//	 private double hiddenLayers = 430 / (alpha * (inputs + outputs));
+//	private double hiddenLayers = Math.sqrt(inputs * outputs); // Geometric Pyramid Rule
+	private double hiddenLayers = inputs / (alpha * (inputs + outputs));
 	private double[] results;
 
 	public NeuralNetwork(int inputs) {
@@ -73,6 +73,7 @@ public class NeuralNetwork {
 		basicNetwork.addLayer(new BasicLayer(new ActivationReLU(), true, (int) hiddenLayers));
 		basicNetwork.addLayer(new BasicLayer(new ActivationBipolarSteepenedSigmoid(), false, (int) hiddenLayers));
 		basicNetwork.addLayer(new BasicLayer(new ActivationSigmoid(), true, (int) hiddenLayers));
+		basicNetwork.addLayer(new BasicLayer(new ActivationClippedLinear(), true, (int) hiddenLayers));
 		basicNetwork.addLayer(new BasicLayer(new ActivationTANH(), true, outputs));
 		basicNetwork.addLayer(new BasicLayer(new ActivationSigmoid(), true, outputs));
 
@@ -98,7 +99,7 @@ public class NeuralNetwork {
 //		resilientPropagation = new ResilientPropagation(basicNetwork, mlDataSet);
 //		resilientPropagation.addStrategy(new RequiredImprovementStrategy(5));
 
-		System.out.println("INFO: Training neural network...");
+		System.out.println("\nINFO: Training neural network...");
 //		EncogUtility.trainToError(resilientPropagation, MAX_ERROR);
 
 		do {
@@ -124,37 +125,6 @@ public class NeuralNetwork {
 //		System.out.println("Loaded network’s error is (should be same as above) : " + err);
 //		EncogUtility.evaluate(loadedNetwork, training);
 
-//		for (MLDataPair mlDataPair : mlDataSet) {
-//			total++;
-//
-//			mlDataOutput = basicNetwork.compute(mlDataPair.getInput());
-//			mlDataActual = mlDataOutput;
-//			mlDataIdeal = mlDataPair.getIdeal();
-//
-//			results = mlDataActual.getData();
-//
-//			for (i = 0; i < results.length; i++) {
-//				if (results[i] > 0 && (resultIndex == -1 || results[i] > results[resultIndex])) {
-//					resultIndex = i;
-//				}
-//			}
-//
-//			for (i = 0; i < mlDataIdeal.size(); i++) {
-//				if (mlDataIdeal.getData(i) == 1.0) {
-//					idealIndex = i;
-//
-//					if (idealIndex == resultIndex) {
-//						correctValues++;
-//					}
-//				}
-//			}
-//
-//			counter++;
-//		}
-
-		/**
-		 * 
-		 */
 		for (MLDataPair mlDataPair : mlDataSet) {
 			MLData inputData = mlDataPair.getInput();
 			MLData actualData = mlDataPair.getIdeal();
@@ -172,19 +142,13 @@ public class NeuralNetwork {
 			if (mlDataPair.getInput().getData(0) == mlDataPair.getInput().getData(1)) {
 				correctValues++;
 			}
-			
+
 			// Gives 99% accuracy
 //			if (actual == predict) {
 //				correctValues++;
 //			}
 
 			total++;
-
-//			System.out.println(mlDataPair.getInput().getData(0) + ", " + mlDataPair.getInput().getData(1) + ", Y = "
-//					+ (int) Math.round(predictData.getData(0)) + ", Yd = " + (int) mlDataPair.getIdeal().getData(0));
-
-//			System.out.println(total + ": actual = " + actual + "(" + actualDirection + "), predict = " + predict + "("
-//					+ actualDirection + "), diff = " + diff);
 		}
 
 		double percent = (double) correctValues / (double) total;

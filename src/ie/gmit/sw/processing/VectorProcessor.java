@@ -58,7 +58,7 @@ public class VectorProcessor {
 	 * @throws Exception
 	 */
 	public void parse() throws Exception {
-		System.out.print("Reading WiLI language dataset...");
+		System.out.print("\nReading WiLI language dataset...");
 
 		try {
 			bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(languageFile)));
