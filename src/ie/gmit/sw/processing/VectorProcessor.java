@@ -93,7 +93,7 @@ public class VectorProcessor {
 		}
 
 		// Replace any irrelevant characters
-		text = record[0].toLowerCase();
+		text = record[0].toUpperCase();
 		language = record[1];
 		
 		/**
@@ -179,4 +179,8 @@ public class VectorProcessor {
 
 		return languages;
 	}
+	
+//	public static void main(String[] args) throws Exception {
+//        new VectorProcessor(3, 510).parse();
+//    }
 }

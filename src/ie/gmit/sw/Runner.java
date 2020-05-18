@@ -1,6 +1,6 @@
 package ie.gmit.sw;
 
-import ie.gmit.sw.gui.Menu;
+import ie.gmit.sw.ui.Menu;
 
 /**
  * @author Kevin Niland
