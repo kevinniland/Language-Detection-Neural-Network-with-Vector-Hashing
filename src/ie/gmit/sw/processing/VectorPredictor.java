@@ -26,7 +26,7 @@ public class VectorPredictor {
 	}
 	
 	/**
-	 * Parse WiLI dataset and pass it of to process()
+	 * Parse file and pass it of to process()
 	 * 
 	 * @throws Exception
 	 */
@@ -73,5 +73,7 @@ public class VectorPredictor {
 			
 			vector[ngram.hashCode() % vector.length]++;
 		}
+		
+		vector = Utilities.normalize(vector, 0, 1);
 	}
 }
