@@ -6,10 +6,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import org.encog.neural.networks.BasicNetwork;
+import org.encog.util.simple.EncogUtility;
+
 import ie.gmit.sw.helpers.Utilities;
 import ie.gmit.sw.neuralnetwork.NeuralNetwork;
 
 public class VectorPredictor {
+	private BasicNetwork basicNetwork;
 	private BufferedReader bufferedReader;
 	private String file, line, ngram;
 	private int i, ngramSize;
@@ -50,6 +54,9 @@ public class VectorPredictor {
 		}
 		
 		new NeuralNetwork().getPrediction(Utilities.normalize(vector, 0, 1));
+//		
+//		basicNetwork = Utilities.loadNeuralNetwork("./kfold.nn");
+//		EncogUtility.evaluate(basicNetwork, new NeuralNetwork().getPrediction(Utilities.normalize(vector, 0, 1)));
 	}
 	
 	/**

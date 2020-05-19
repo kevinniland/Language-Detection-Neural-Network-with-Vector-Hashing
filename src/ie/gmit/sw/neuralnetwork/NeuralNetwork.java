@@ -231,4 +231,8 @@ public class NeuralNetwork {
 		
 		return languages[actual];
 	}
+	
+	public void test() {
+		
+	}
 }

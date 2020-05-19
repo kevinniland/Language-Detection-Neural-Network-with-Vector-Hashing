@@ -35,6 +35,13 @@ public class Menu {
 	private int menuChoice, epochs, ngramSize, inputsVectorSize;
 	private double errorRate;
 
+	/**
+	 * Menu - User can train the neural network using K-Fold Cross Validation,
+	 * Resilient Propagation, and predict a language using the trained K-Fold Cross
+	 * Validation or Resilient Propagation neural network
+	 * 
+	 * @throws Exception
+	 */
 	public void menu() throws Exception {
 		while (keepAlive) {
 			System.out.println("\nLanguage Detection Neural Network with Vector Hashing");
@@ -50,59 +57,59 @@ public class Menu {
 			case 1:
 				System.out.println("Enter n-gram size: ");
 				ngramSize = scanner.nextInt();
-				
+
 				System.out.println("Enter input size: ");
 				inputsVectorSize = scanner.nextInt();
-				
+
 				System.out.println("Enter number of epochs: ");
 				epochs = scanner.nextInt();
-				
+
 				new VectorProcessor(ngramSize, inputsVectorSize).parse();
 				neuralNetwork = new NeuralNetwork(inputsVectorSize, epochs, 0);
-				
+
 				basicNetwork = neuralNetwork.configureTopology();
 				mlDataSet = neuralNetwork.generateDataSet();
-				
+
 				neuralNetwork.crossValidation(basicNetwork, mlDataSet);
 				neuralNetwork.getAccuracy(basicNetwork, mlDataSet);
 				break;
 			case 2:
 				System.out.println("Enter n-gram size: ");
 				ngramSize = scanner.nextInt();
-				
+
 				System.out.println("Enter input size: ");
 				inputsVectorSize = scanner.nextInt();
-				
+
 				System.out.println("Enter error rate to train to (in the format of #.####): ");
 				errorRate = scanner.nextDouble();
-				
+
 				new VectorProcessor(ngramSize, inputsVectorSize).parse();
 				neuralNetwork = new NeuralNetwork(inputsVectorSize, 0, errorRate);
-				
+
 				basicNetwork = neuralNetwork.configureTopology();
 				mlDataSet = neuralNetwork.generateDataSet();
-				
+
 				neuralNetwork.resilientPropagation(basicNetwork, mlDataSet);
 				neuralNetwork.getAccuracy(basicNetwork, mlDataSet);
 				break;
 			case 3:
 				System.out.println("Enter file name: ");
 				userFile = scanner.next();
-				
+
 				System.out.println("Enter n-gram size: ");
 				ngramSize = scanner.nextInt();
-				
+
 				System.out.println("Enter input size: ");
 				inputsVectorSize = scanner.nextInt();
-				
+
 				new VectorPredictor(userFile, ngramSize, inputsVectorSize).parse();
 				break;
 			case 4:
-				
+
 				break;
 			case 5:
 				System.out.println("Program terminated");
-				
+
 				keepAlive = false;
 				break;
 			default:
