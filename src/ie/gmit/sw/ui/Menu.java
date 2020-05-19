@@ -11,6 +11,7 @@ import org.encog.ml.data.MLDataSet;
 import org.encog.neural.networks.BasicNetwork;
 
 import ie.gmit.sw.neuralnetwork.NeuralNetwork;
+import ie.gmit.sw.processing.VectorPredictor;
 import ie.gmit.sw.processing.VectorProcessor;
 
 /**
@@ -85,7 +86,16 @@ public class Menu {
 				neuralNetwork.getAccuracy(basicNetwork, mlDataSet);
 				break;
 			case 3:
+				System.out.println("Enter file name: ");
+				userFile = scanner.next();
 				
+				System.out.println("Enter n-gram size: ");
+				ngramSize = scanner.nextInt();
+				
+				System.out.println("Enter input size: ");
+				inputsVectorSize = scanner.nextInt();
+				
+				new VectorPredictor(userFile, ngramSize, inputsVectorSize).parse();
 				break;
 			case 4:
 				

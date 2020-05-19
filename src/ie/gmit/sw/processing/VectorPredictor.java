@@ -7,14 +7,16 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import ie.gmit.sw.helpers.Utilities;
+import ie.gmit.sw.neuralnetwork.NeuralNetwork;
 
 public class VectorPredictor {
 	private BufferedReader bufferedReader;
-	private String line, ngram;
+	private String file, line, ngram;
 	private int i, ngramSize;
 	private double[] vector;
 	
-	public VectorPredictor(int ngramSize, int vectorSize) {
+	public VectorPredictor(String file, int ngramSize, int vectorSize) {
+		this.file = file;
 		this.ngramSize = ngramSize;
 		vector = new double[vectorSize];
 	}
@@ -24,9 +26,10 @@ public class VectorPredictor {
 	 * 
 	 * @throws Exception
 	 */
-	public double[] parse(String file) throws Exception {
-		System.out.print("\nReading WiLI language dataset...");
-
+	public void parse() throws Exception {
+		System.out.print("\nReading file " + file + "...");
+//		System.out.println(System.getProperty("user.dir"));
+		
 		for (i = 0; i < vector.length; i++) {
 			vector[i] = 0; 
 		}
@@ -46,7 +49,7 @@ public class VectorPredictor {
 			ioException.printStackTrace();
 		}
 		
-		return Utilities.normalize(vector, 0, 1);
+		new NeuralNetwork().getPrediction(Utilities.normalize(vector, 0, 1));
 	}
 	
 	/**

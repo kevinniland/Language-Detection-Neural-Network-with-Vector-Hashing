@@ -10,6 +10,8 @@ import org.encog.engine.network.activation.ActivationSoftMax;
 import org.encog.ml.data.MLData;
 import org.encog.ml.data.MLDataPair;
 import org.encog.ml.data.MLDataSet;
+import org.encog.ml.data.basic.BasicMLData;
+import org.encog.ml.data.basic.BasicMLDataSet;
 import org.encog.ml.data.buffer.MemoryDataLoader;
 import org.encog.ml.data.buffer.codec.CSVDataCODEC;
 import org.encog.ml.data.buffer.codec.DataSetCODEC;
@@ -25,14 +27,16 @@ import org.encog.util.csv.CSVFormat;
 import org.encog.util.simple.EncogUtility;
 
 import ie.gmit.sw.helpers.Utilities;
+import ie.gmit.sw.language.Language;
 
 public class NeuralNetwork {
+	private Language[] languages;
 	private BasicNetwork basicNetwork, savedNetwork;
 	private CrossValidationKFold crossValidationKFold;
 	private DataSetCODEC dataSetCODEC;
 	private FoldedDataSet foldedDataSet;
 	private MemoryDataLoader memoryDataLoader;
-	private MLData mlDataActual, mlDataIdeal;
+	private MLData mlDataActual, mlDataIdeal, mlDataOutput, mlDataPredction;
 	private MLDataSet mlDataSet;
 	private MLTrain mlTrain;
 	private ResilientPropagation resilientPropagation;
@@ -40,15 +44,15 @@ public class NeuralNetwork {
 	private File csvFile = new File("data.csv");
 	private static int inputs = 510;
 	private static final int outputs = 235;
-	private int i, k = 5, actual, correctValues = 0, epoch = 0, epochs, ideal, inputSize, result = -1, totalValues = 0;
+	private int i, k = 5, actual = 0, correctValues = 0, epoch = 0, epochs, ideal, inputSize, result = -1, totalValues = 0;
 	private int hiddenLayers = inputs / 4;
 	private static final double MAX_ERROR = 0.0023;
 	private double error, percent, limit = -1, errorRate;
-
-	/**
-	 * 
-	 * @param inputSize
-	 */
+	
+	public NeuralNetwork() {
+		
+	}
+	
 	public NeuralNetwork(int inputSize, int epochs, double errorRate) {
 		this.inputSize = inputSize;
 		this.epochs = epochs;
@@ -142,14 +146,6 @@ public class NeuralNetwork {
 		resilientPropagation.finishTraining();
 	}
 
-//	public void evaluate(MLDataSet mlDataSet) {
-//		savedNetwork = Utilities.loadNeuralNetwork("./test.nn");
-//		error = savedNetwork.calculateError(mlDataSet);
-//
-//		System.out.println("Saved network's error rate: " + error);
-//		EncogUtility.evaluate(savedNetwork, mlDataSet);
-//	}
-
 	/**
 	 * Determine the accuracy of the neural network.
 	 * 
@@ -216,5 +212,23 @@ public class NeuralNetwork {
 		System.out.println("\nINFO: Testing complete.");
 		System.out.println("Correct: " + correctValues + "/" + totalValues);
 		System.out.println("Accuracy: " + decimalFormat.format(percent * 100) + "%");
+	}
+	
+	public Language getPrediction(double[] vector) {
+		mlDataPredction = new BasicMLData(vector);
+		mlDataPredction.setData(vector);
+		
+		mlDataOutput = basicNetwork.compute(mlDataPredction);
+		
+		for (i = 0; i < mlDataOutput.size(); i++) {
+			if (mlDataOutput.getData(i) > limit) {
+				limit = mlDataOutput.getData(i);
+				actual = i;
+			}
+		}
+		
+		languages = Language.values();
+		
+		return languages[actual];
 	}
 }
