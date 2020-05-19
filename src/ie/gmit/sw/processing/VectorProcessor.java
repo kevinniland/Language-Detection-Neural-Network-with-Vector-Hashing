@@ -32,7 +32,6 @@ public class VectorProcessor {
 	private File languageFile = new File("wili-2018-Small-11750-Edited.txt");
 	private FileWriter fileWriter;
 	private String line, text, language, ngram;
-	private String file;
 	private String[] record;
 	private int i, j, ngramSize = 0;
 	private final int NUMBER_OF_LANGUAGES = Language.values().length;
