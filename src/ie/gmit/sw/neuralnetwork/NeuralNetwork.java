@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
 import org.encog.Encog;
+import org.encog.Test;
 import org.encog.engine.network.activation.ActivationReLU;
 import org.encog.engine.network.activation.ActivationSoftMax;
 import org.encog.ml.data.MLData;
@@ -29,6 +30,13 @@ import org.encog.util.simple.EncogUtility;
 import ie.gmit.sw.helpers.Utilities;
 import ie.gmit.sw.language.Language;
 
+/**
+ * @author Kevin Niland
+ * @category Neural Network
+ * @version 1.0
+ *
+ *          NeuralNetwork
+ */
 public class NeuralNetwork {
 	private Language[] languages;
 	private BasicNetwork basicNetwork, savedNetwork;
@@ -44,15 +52,16 @@ public class NeuralNetwork {
 	private File csvFile = new File("data.csv");
 	private static int inputs = 510;
 	private static final int outputs = 235;
-	private int i, k = 5, actual = 0, correctValues = 0, epoch = 0, epochs, ideal, inputSize, result = -1, totalValues = 0;
+	private int i, k = 5, actual = 0, correctValues = 0, epoch = 0, epochs, ideal, inputSize, result = -1,
+			totalValues = 0;
 	private int hiddenLayers = inputs / 4;
 	private static final double MAX_ERROR = 0.0023;
 	private double error, percent, limit = -1, errorRate;
-	
+
 	public NeuralNetwork() {
-		
+
 	}
-	
+
 	public NeuralNetwork(int inputSize, int epochs, double errorRate) {
 		this.inputSize = inputSize;
 		this.epochs = epochs;
@@ -213,26 +222,23 @@ public class NeuralNetwork {
 		System.out.println("Correct: " + correctValues + "/" + totalValues);
 		System.out.println("Accuracy: " + decimalFormat.format(percent * 100) + "%");
 	}
-	
-	public Language getPrediction(double[] vector) {
+
+	public void getPrediction(double[] vector) {
 		mlDataPredction = new BasicMLData(vector);
 		mlDataPredction.setData(vector);
-		
+
+		basicNetwork = Utilities.loadNeuralNetwork("./kfold.nn");
 		mlDataOutput = basicNetwork.compute(mlDataPredction);
-		
+
 		for (i = 0; i < mlDataOutput.size(); i++) {
 			if (mlDataOutput.getData(i) > limit) {
 				limit = mlDataOutput.getData(i);
 				actual = i;
 			}
 		}
-		
+
 		languages = Language.values();
-		
-		return languages[actual];
-	}
-	
-	public void test() {
-		
+
+		System.out.println("Predicted language: " + languages[actual].toString());
 	}
 }
