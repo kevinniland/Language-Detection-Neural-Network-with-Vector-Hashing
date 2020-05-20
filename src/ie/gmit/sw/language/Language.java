@@ -80,7 +80,13 @@ public enum Language {
 		return this.language;
 	}
 	
-	public static boolean isInEnum(String value, Class<Language> enumClass) {
+	/**
+	 * Checks if a language is in the enum
+	 * @param value
+	 * @param enumClass
+	 * @return
+	 */
+	public static boolean inEnum(String value, Class<Language> enumClass) {
         return Arrays.stream(enumClass.getEnumConstants()).anyMatch(e -> e.name().equals(value));
     }
 }

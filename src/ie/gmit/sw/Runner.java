@@ -4,7 +4,7 @@ import ie.gmit.sw.ui.Menu;
 
 /**
  * @author Kevin Niland
- * @category GUI
+ * @category Main
  * @version 1.0
  * 
  *          Runner - Runs the application. Displays the menu as defined in

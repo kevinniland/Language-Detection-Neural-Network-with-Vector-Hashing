@@ -1,11 +1,7 @@
 package ie.gmit.sw.ui;
 
-import java.io.File;
-import java.time.Duration;
-import java.time.Instant;
+import java.text.DecimalFormat;
 import java.util.Scanner;
-
-import javax.swing.JFileChooser;
 
 import org.encog.ml.data.MLDataSet;
 import org.encog.neural.networks.BasicNetwork;
@@ -19,21 +15,21 @@ import ie.gmit.sw.processing.VectorProcessor;
  * @category GUI
  * @version 1.0
  * 
- *          Menu - Simple menu from the user can choose several different
- *          options such as specifying the n-gram size, vector size, etc.
+ *          Menu - Simple menu from which the user can choose several different
+ *          options such as specifying the n-gram size, vector size, number of
+ *          epochs to perform, and error rate to train the neural network to
  */
 public class Menu {
 	private NeuralNetwork neuralNetwork;
 	private BasicNetwork basicNetwork;
 	private MLDataSet mlDataSet;
-	private Duration duration;
-	private Instant start, stop;
+	private DecimalFormat decimalFormat;
 	private Scanner scanner = new Scanner(System.in);
-	private String languageFile = "wili-2018-Small-11750-Edited.txt", userFile, userString;
+	private String userFile, trainedNN;
 	private boolean keepAlive = true;
-	private long timeElapsed;
 	private int menuChoice, epochs, ngramSize, inputsVectorSize;
 	private double errorRate;
+	private long start, time;
 
 	/**
 	 * Menu - User can train the neural network using K-Fold Cross Validation,
@@ -43,18 +39,30 @@ public class Menu {
 	 * @throws Exception
 	 */
 	public void menu() throws Exception {
+		decimalFormat = new DecimalFormat("##.##");
+
 		while (keepAlive) {
 			System.out.println("\nLanguage Detection Neural Network with Vector Hashing");
 			System.out.println("=====================================================");
 			System.out.println("Enter 1 to use cross validation to train a neural network,");
 			System.out.println("Enter 2 to use resilient propagation to train a neural network,");
-			System.out.println("Enter 3 to predict language of a file with cross validation,");
-			System.out.println("Enter 4 to predict language of a file with resilient propagation,");
-			System.out.println("Enter 5 to quit the program: ");
+			System.out.println("Enter 3 to predict language of a file with cross validation or");
+			System.out.println("Enter 4 to quit the program: ");
 			menuChoice = scanner.nextInt();
 
 			switch (menuChoice) {
 			case 1:
+				/**
+				 * Case 1 deals with cross validation with a mix of resilient propagation and
+				 * will train the neural network using K-Fold Cross Validation. The user is
+				 * prompted to enter an n-gram size, input size, and the number of epochs to
+				 * train the neural network for
+				 * 
+				 * From testing, the ideal inputs are as follows: N-gram size - Input size -
+				 * Number of epochs -
+				 * 
+				 * This yields an error rate of and an accuracy of
+				 */
 				System.out.println("Enter n-gram size: ");
 				ngramSize = scanner.nextInt();
 
@@ -64,16 +72,38 @@ public class Menu {
 				System.out.println("Enter number of epochs: ");
 				epochs = scanner.nextInt();
 
+				start = System.currentTimeMillis();
+
 				new VectorProcessor(ngramSize, inputsVectorSize).parse();
 				neuralNetwork = new NeuralNetwork(inputsVectorSize, epochs, 0);
 
+				// Configure the network topology and generate the dataset
 				basicNetwork = neuralNetwork.configureTopology();
 				mlDataSet = neuralNetwork.generateDataSet();
 
 				neuralNetwork.crossValidation(basicNetwork, mlDataSet);
 				neuralNetwork.getAccuracy(basicNetwork, mlDataSet);
+
+				// Calculate time taken to train the neural network
+				time = (System.currentTimeMillis() - start) / 1000;
+
+				if (time < 60) {
+					System.out.println("Time taken: " + decimalFormat.format(time) + " second(s)");
+				} else {
+					System.out.println("Time taken: " + decimalFormat.format(time / 60) + " minute(s)");
+				}
 				break;
 			case 2:
+				/**
+				 * Case 2 deals with resilient propagation solely and will train the neural
+				 * network using Resilient Propagation. The user is prompted to enter an n-gram
+				 * size, input size, and the number of epochs to train the neural network for
+				 * 
+				 * From testing, the ideal inputs are as follows: N-gram size - Input size -
+				 * Number of epochs -
+				 * 
+				 * This yields an error rate of and an accuracy of
+				 */
 				System.out.println("Enter n-gram size: ");
 				ngramSize = scanner.nextInt();
 
@@ -86,6 +116,7 @@ public class Menu {
 				new VectorProcessor(ngramSize, inputsVectorSize).parse();
 				neuralNetwork = new NeuralNetwork(inputsVectorSize, 0, errorRate);
 
+				// Configure the network topology and generate the dataset
 				basicNetwork = neuralNetwork.configureTopology();
 				mlDataSet = neuralNetwork.generateDataSet();
 
@@ -93,6 +124,14 @@ public class Menu {
 				neuralNetwork.getAccuracy(basicNetwork, mlDataSet);
 				break;
 			case 3:
+				/**
+				 * Case 3 deals with predicting the language of a file using one of the trained
+				 * neural networks
+				 * 
+				 * N.B: To use one of the trained neural networks, make sure the input size you
+				 * enter here is the same input size you entered to train the neural networks
+				 * previously
+				 */
 				System.out.println("Enter file name: ");
 				userFile = scanner.next();
 
@@ -102,12 +141,15 @@ public class Menu {
 				System.out.println("Enter input size: ");
 				inputsVectorSize = scanner.nextInt();
 
-				new VectorPredictor(userFile, ngramSize, inputsVectorSize).parse();
+				System.out.println("Enter neural network to use: ");
+				trainedNN = scanner.next();
+
+				new VectorPredictor(userFile, ngramSize, inputsVectorSize, trainedNN).parse();
 				break;
 			case 4:
-
-				break;
-			case 5:
+				/**
+				 * Case 4 terminates the program
+				 */
 				System.out.println("Program terminated");
 
 				keepAlive = false;

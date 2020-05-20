@@ -4,15 +4,13 @@ import java.io.File;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
-import org.encog.Encog;
-import org.encog.Test;
 import org.encog.engine.network.activation.ActivationReLU;
+import org.encog.engine.network.activation.ActivationSigmoid;
 import org.encog.engine.network.activation.ActivationSoftMax;
 import org.encog.ml.data.MLData;
 import org.encog.ml.data.MLDataPair;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.data.basic.BasicMLData;
-import org.encog.ml.data.basic.BasicMLDataSet;
 import org.encog.ml.data.buffer.MemoryDataLoader;
 import org.encog.ml.data.buffer.codec.CSVDataCODEC;
 import org.encog.ml.data.buffer.codec.DataSetCODEC;
@@ -22,12 +20,12 @@ import org.encog.ml.train.strategy.RequiredImprovementStrategy;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.cross.CrossValidationKFold;
-import org.encog.neural.networks.training.propagation.back.Backpropagation;
 import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation;
 import org.encog.util.csv.CSVFormat;
 import org.encog.util.simple.EncogUtility;
 
 import ie.gmit.sw.helpers.Utilities;
+import ie.gmit.sw.interfaces.NeuralNetworkInterface;
 import ie.gmit.sw.language.Language;
 
 /**
@@ -35,11 +33,14 @@ import ie.gmit.sw.language.Language;
  * @category Neural Network
  * @version 1.0
  *
- *          NeuralNetwork
+ *          NeuralNetwork - Trains a neural network using different methods.
+ *          From this, the accuracy of the neural network is determined. The
+ *          trained neural network can then be used to predict the language of a
+ *          file containing a string of text
  */
-public class NeuralNetwork {
+public class NeuralNetwork implements NeuralNetworkInterface {
 	private Language[] languages;
-	private BasicNetwork basicNetwork, savedNetwork;
+	private BasicNetwork basicNetwork;
 	private CrossValidationKFold crossValidationKFold;
 	private DataSetCODEC dataSetCODEC;
 	private FoldedDataSet foldedDataSet;
@@ -54,14 +55,20 @@ public class NeuralNetwork {
 	private static final int outputs = 235;
 	private int i, k = 5, actual = 0, correctValues = 0, epoch = 0, epochs, ideal, inputSize, result = -1,
 			totalValues = 0;
+//	private int hiddenLayers = (int) Math.sqrt(inputs + outputs);
 	private int hiddenLayers = inputs / 4;
-	private static final double MAX_ERROR = 0.0023;
-	private double error, percent, limit = -1, errorRate;
+	private double errorRate, percent, limit = -1;
 
 	public NeuralNetwork() {
 
 	}
 
+	/**
+	 * 
+	 * @param inputSize - Number of inputs (which also serves as the vector size)
+	 * @param epochs    - Number of epochs to train the neural network for
+	 * @param errorRate - Error rate to train the neural network to
+	 */
 	public NeuralNetwork(int inputSize, int epochs, double errorRate) {
 		this.inputSize = inputSize;
 		this.epochs = epochs;
@@ -73,11 +80,12 @@ public class NeuralNetwork {
 	 * 
 	 * @return basicNetwork
 	 */
+	@Override
 	public BasicNetwork configureTopology() {
 		basicNetwork = new BasicNetwork();
 
-		basicNetwork.addLayer(new BasicLayer(new ActivationReLU(), true, inputSize));
-		basicNetwork.addLayer(new BasicLayer(new ActivationReLU(), true, hiddenLayers, 400));
+		basicNetwork.addLayer(new BasicLayer(new ActivationSigmoid(), true, inputSize, 4000));
+		basicNetwork.addLayer(new BasicLayer(new ActivationReLU(), true, hiddenLayers));
 		basicNetwork.addLayer(new BasicLayer(new ActivationSoftMax(), false, outputs));
 
 		basicNetwork.getStructure().finalizeStructure();
@@ -91,6 +99,7 @@ public class NeuralNetwork {
 	 * 
 	 * @return mlDataSet
 	 */
+	@Override
 	public MLDataSet generateDataSet() {
 		dataSetCODEC = new CSVDataCODEC(csvFile, CSVFormat.DECIMAL_POINT, false, inputSize, outputs, false);
 		memoryDataLoader = new MemoryDataLoader(dataSetCODEC);
@@ -105,9 +114,10 @@ public class NeuralNetwork {
 	 * @param basicNetwork
 	 * @param mlDataSet
 	 */
+	@Override
 	public void crossValidation(BasicNetwork basicNetwork, MLDataSet mlDataSet) {
 		foldedDataSet = new FoldedDataSet(mlDataSet);
-		mlTrain = new Backpropagation(basicNetwork, foldedDataSet);
+		mlTrain = new ResilientPropagation(basicNetwork, foldedDataSet);
 		crossValidationKFold = new CrossValidationKFold(mlTrain, k);
 
 		// Format crossValidationKFold output
@@ -145,12 +155,18 @@ public class NeuralNetwork {
 	 * @param basicNetwork
 	 * @param mlDataSet
 	 */
+	@Override
 	public void resilientPropagation(BasicNetwork basicNetwork, MLDataSet mlDataSet) {
 		resilientPropagation = new ResilientPropagation(basicNetwork, mlDataSet);
 		resilientPropagation.addStrategy(new RequiredImprovementStrategy(5));
 
+		/**
+		 * Trains the neural network until the error rate gets below errorRate, as
+		 * defined by the user
+		 */
 		EncogUtility.trainToError(resilientPropagation, errorRate);
 
+		// Save the neural network and finish training
 		Utilities.saveNeuralNetwork(basicNetwork, "./resilient.nn");
 		resilientPropagation.finishTraining();
 	}
@@ -161,6 +177,7 @@ public class NeuralNetwork {
 	 * @param basicNetwork
 	 * @param mlDataSet
 	 */
+	@Override
 	public void getAccuracy(BasicNetwork basicNetwork, MLDataSet mlDataSet) {
 		for (MLDataPair mlDataPair : mlDataSet) {
 			mlDataActual = basicNetwork.compute(mlDataPair.getInput());
@@ -201,7 +218,7 @@ public class NeuralNetwork {
 //				if (mlDataPair.getIdeal().getData(i) > limit) {
 //					limit = mlDataActual.getData(i);
 //
-//					ideal = i;\
+//					ideal = i;
 //
 //					if (actual == ideal) {
 //						correctValues++;
@@ -223,11 +240,20 @@ public class NeuralNetwork {
 		System.out.println("Accuracy: " + decimalFormat.format(percent * 100) + "%");
 	}
 
-	public void getPrediction(double[] vector) {
+	/**
+	 * Predicts the language of a file using one of the trained neural networks
+	 * 
+	 * @param nnFile - Neural network file user has chosen to predict the language
+	 *               of a file
+	 * @param vector - Vector array containing normalized values of file containing
+	 *               the string of text
+	 */
+	@Override
+	public void getPrediction(String nnFile, double[] vector) {
 		mlDataPredction = new BasicMLData(vector);
 		mlDataPredction.setData(vector);
 
-		basicNetwork = Utilities.loadNeuralNetwork("./kfold.nn");
+		basicNetwork = Utilities.loadNeuralNetwork(nnFile);
 		mlDataOutput = basicNetwork.compute(mlDataPredction);
 
 		for (i = 0; i < mlDataOutput.size(); i++) {
