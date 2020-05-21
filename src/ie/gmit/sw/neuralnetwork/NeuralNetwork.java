@@ -4,7 +4,6 @@ import java.io.File;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
-import org.encog.engine.network.activation.ActivationReLU;
 import org.encog.engine.network.activation.ActivationSigmoid;
 import org.encog.engine.network.activation.ActivationSoftMax;
 import org.encog.engine.network.activation.ActivationTANH;
@@ -52,12 +51,9 @@ public class NeuralNetwork implements NeuralNetworkInterface {
 	private ResilientPropagation resilientPropagation;
 	private DecimalFormat decimalFormat;
 	private File csvFile = new File("data.csv");
-	private static int inputs = 300;
 	private static final int outputs = 235;
 	private int i, k = 5, actual = 0, correctValues = 0, epoch = 0, epochs, ideal, inputSize, result = -1,
 			totalValues = 0;
-//	private int hiddenLayers = (int) Math.sqrt(inputs + outputs);
-	private int hiddenLayers = inputs / 3;
 	private double errorRate, percent, limit = -1;
 
 	public NeuralNetwork() {
@@ -65,6 +61,7 @@ public class NeuralNetwork implements NeuralNetworkInterface {
 	}
 
 	/**
+	 * Constructor
 	 * 
 	 * @param inputSize - Number of inputs (which also serves as the vector size)
 	 * @param epochs    - Number of epochs to train the neural network for
@@ -79,16 +76,16 @@ public class NeuralNetwork implements NeuralNetworkInterface {
 	/**
 	 * Configures the network topology
 	 * 
+	 * @param inputSize - Input size/vector size
 	 * @return basicNetwork
 	 */
 	@Override
-	public BasicNetwork configureTopology() {
+	public BasicNetwork configureTopology(int inputSize) {
+		int hiddenLayers = inputSize / 3;
+
 		basicNetwork = new BasicNetwork();
 
-		/**
-		 * The dropout rate seems to be a major contributing factor to the accuracy of the neural network
-		 */
-		basicNetwork.addLayer(new BasicLayer(new ActivationReLU(), false, inputSize));
+		basicNetwork.addLayer(new BasicLayer(new ActivationSigmoid(), true, inputSize));
 		basicNetwork.addLayer(new BasicLayer(new ActivationTANH(), true, hiddenLayers, 600));
 		basicNetwork.addLayer(new BasicLayer(new ActivationSoftMax(), false, outputs));
 
@@ -128,12 +125,7 @@ public class NeuralNetwork implements NeuralNetworkInterface {
 		decimalFormat = new DecimalFormat("#.######");
 		decimalFormat.setRoundingMode(RoundingMode.CEILING);
 
-		/**
-		 * Train the neural network for n number of epochs, as defined by the user. From
-		 * testing, the ideal number of epochs i.e. the ideal number of epochs to train
-		 * the neural network for until the error rate starts to plateau, seems to be
-		 * ...
-		 */
+		// Train the neural network for n number of epochs, as defined by the user
 		do {
 			crossValidationKFold.iteration();
 
@@ -176,7 +168,7 @@ public class NeuralNetwork implements NeuralNetworkInterface {
 	}
 
 	/**
-	 * Determine the accuracy of the neural network.
+	 * Determine the accuracy of the neural network
 	 * 
 	 * @param basicNetwork
 	 * @param mlDataSet
@@ -209,10 +201,13 @@ public class NeuralNetwork implements NeuralNetworkInterface {
 		}
 
 		/**
+		 * N.B
+		 * 
 		 * This might be the more correct way of calculating the accuracy (?). This
 		 * method yields an accuracy of about 10% less than the above method so feel
 		 * free to mess around with this
 		 */
+
 //		for (MLDataPair mlDataPair : mlDataSet) {
 //			mlDataActual = basicNetwork.compute(mlDataPair.getInput());
 //

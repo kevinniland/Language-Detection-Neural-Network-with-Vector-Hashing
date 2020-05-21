@@ -38,6 +38,8 @@ public class VectorProcessor implements ProcessorInterface {
 	private double[] vector;
 
 	/**
+	 * Constructor 
+	 * 
 	 * @param ngramSize  - Size of ngram as defined by user
 	 * @param vectorSize - Size of vector as defined by user
 	 */

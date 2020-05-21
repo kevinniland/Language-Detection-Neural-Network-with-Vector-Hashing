@@ -25,6 +25,8 @@ public class VectorPredictor implements PredictorInterface {
 	private double[] vector;
 
 	/**
+	 * Constructor 
+	 * 
 	 * @param file       - File containing the string of text
 	 * @param ngramSize  - N-gram size
 	 * @param vectorSize - Input size (Input size must be the same as the input size
@@ -40,7 +42,7 @@ public class VectorPredictor implements PredictorInterface {
 	}
 
 	/**
-	 * Parse file and pass it of to process()
+	 * Parse file and pass it off to process()
 	 * 
 	 * @throws Exception
 	 */
@@ -75,9 +77,7 @@ public class VectorPredictor implements PredictorInterface {
 			vector[i] = 0;
 		}
 
-		/**
-		 * Construct n-grams from the file
-		 */
+		// Construct n-grams from the file
 		for (i = 0; i < line.length() - ngramSize; i++) {
 			ngram = line.substring(i, i + ngramSize);
 

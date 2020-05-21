@@ -21,11 +21,11 @@ public class Utilities {
 	 * function(s) that you are using in your neural network, e.g. Tanh, Sigmoid,
 	 * etc.
 	 *
-	 * @param vector - The array of hashed n-grams.
+	 * @param vector - The array of hashed n-grams
 	 * @param lower  - The lower bound to squash the vector values from, e.g. -1 or
 	 *               0
-	 * @param upper  - The upper bound to squash the vector values to, e.g. 1.
-	 * @return the vector of values normalized within the range [lower..upper].
+	 * @param upper  - The upper bound to squash the vector values to, e.g. 1
+	 * @return the vector of values normalized within the range [lower..upper]
 	 */
 	public static double[] normalize(double[] vector, double lower, double upper) {
 		int i;
@@ -56,8 +56,8 @@ public class Utilities {
 	 * you can save the network using the following syntax:
 	 * Utilities.saveNeuralNetwork(network, "language-detect.nn");
 	 * 
-	 * @param basicNetwork - The instance of BasicNetwork to save.
-	 * @param fileName     - The name of the file to save the network to.
+	 * @param basicNetwork - The instance of BasicNetwork to save
+	 * @param fileName     - The name of the file to save the network to
 	 */
 	public static void saveNeuralNetwork(BasicNetwork basicNetwork, String fileName) {
 		EncogDirectoryPersistence.saveObject(new File(fileName), basicNetwork);
@@ -71,7 +71,7 @@ public class Utilities {
 	 * BasicNetwork network = Utilities.loadNeuralNetwork("language-detect.nn");
 	 * 
 	 * @param fileName - The name of the file containing the serialized instance of
-	 *                 BasicNetwork.
+	 *                 BasicNetwork
 	 * @return
 	 */
 	public static BasicNetwork loadNeuralNetwork(String fileName) {

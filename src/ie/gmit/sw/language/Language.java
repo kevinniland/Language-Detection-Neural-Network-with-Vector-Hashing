@@ -7,7 +7,7 @@ import java.util.Arrays;
  * @category Language
  * @version 1.0
  * 
- * Language enum - Contains all languages
+ *          Language enum - Contains all languages
  */
 public enum Language {
 	Achinese("Achinese"), Afrikaans("Afrikaans"), Albanian("Albanian"), AlemannicGerman("Alemannic German"),
@@ -79,14 +79,15 @@ public enum Language {
 	public CharSequence getLanguageName() {
 		return this.language;
 	}
-	
+
 	/**
 	 * Checks if a language is in the enum
+	 * 
 	 * @param value
 	 * @param enumClass
 	 * @return
 	 */
 	public static boolean inEnum(String value, Class<Language> enumClass) {
-        return Arrays.stream(enumClass.getEnumConstants()).anyMatch(e -> e.name().equals(value));
-    }
+		return Arrays.stream(enumClass.getEnumConstants()).anyMatch(e -> e.name().equals(value));
+	}
 }
