@@ -7,6 +7,7 @@ import java.text.DecimalFormat;
 import org.encog.engine.network.activation.ActivationReLU;
 import org.encog.engine.network.activation.ActivationSigmoid;
 import org.encog.engine.network.activation.ActivationSoftMax;
+import org.encog.engine.network.activation.ActivationTANH;
 import org.encog.ml.data.MLData;
 import org.encog.ml.data.MLDataPair;
 import org.encog.ml.data.MLDataSet;
@@ -51,12 +52,12 @@ public class NeuralNetwork implements NeuralNetworkInterface {
 	private ResilientPropagation resilientPropagation;
 	private DecimalFormat decimalFormat;
 	private File csvFile = new File("data.csv");
-	private static int inputs = 510;
+	private static int inputs = 300;
 	private static final int outputs = 235;
 	private int i, k = 5, actual = 0, correctValues = 0, epoch = 0, epochs, ideal, inputSize, result = -1,
 			totalValues = 0;
 //	private int hiddenLayers = (int) Math.sqrt(inputs + outputs);
-	private int hiddenLayers = inputs / 4;
+	private int hiddenLayers = inputs / 3;
 	private double errorRate, percent, limit = -1;
 
 	public NeuralNetwork() {
@@ -84,8 +85,11 @@ public class NeuralNetwork implements NeuralNetworkInterface {
 	public BasicNetwork configureTopology() {
 		basicNetwork = new BasicNetwork();
 
-		basicNetwork.addLayer(new BasicLayer(new ActivationSigmoid(), true, inputSize, 4000));
-		basicNetwork.addLayer(new BasicLayer(new ActivationReLU(), true, hiddenLayers));
+		/**
+		 * The dropout rate seems to be a major contributing factor to the accuracy of the neural network
+		 */
+		basicNetwork.addLayer(new BasicLayer(new ActivationReLU(), false, inputSize));
+		basicNetwork.addLayer(new BasicLayer(new ActivationTANH(), true, hiddenLayers, 600));
 		basicNetwork.addLayer(new BasicLayer(new ActivationSoftMax(), false, outputs));
 
 		basicNetwork.getStructure().finalizeStructure();
@@ -141,7 +145,7 @@ public class NeuralNetwork implements NeuralNetworkInterface {
 
 		// Output the results
 		System.out.println("\nINFO: Training complete");
-		System.out.println(epoch + " epochs");
+		System.out.println("Epochs: " + epoch);
 		System.out.println("Error rate: " + decimalFormat.format(crossValidationKFold.getError()));
 
 		// Save the neural network to a .nn file and finish training
@@ -184,9 +188,10 @@ public class NeuralNetwork implements NeuralNetworkInterface {
 			mlDataIdeal = mlDataPair.getIdeal();
 
 			for (i = 0; i < mlDataActual.size(); i++) {
-				if (mlDataActual.getData(i) > 0
-						&& (result == -1 || (mlDataActual.getData(i) > mlDataActual.getData(result)))) {
-					result = i;
+				if (mlDataActual.getData(i) > 0) {
+					if (result == -1 || (mlDataActual.getData(i) > mlDataActual.getData(result))) {
+						result = i;
+					}
 				}
 			}
 
@@ -203,6 +208,11 @@ public class NeuralNetwork implements NeuralNetworkInterface {
 			totalValues++;
 		}
 
+		/**
+		 * This might be the more correct way of calculating the accuracy (?). This
+		 * method yields an accuracy of about 10% less than the above method so feel
+		 * free to mess around with this
+		 */
 //		for (MLDataPair mlDataPair : mlDataSet) {
 //			mlDataActual = basicNetwork.compute(mlDataPair.getInput());
 //
